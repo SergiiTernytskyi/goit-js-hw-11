@@ -4,8 +4,10 @@ const KEY = '30592640-c7793cd5d6c6bb2f70fd4091c';
 export class ImagesApiService {
   #query = '';
   #page = 1;
-  #perPage = 20;
+  #perPage = 30;
   #totalPages = 0;
+
+  constructor() {}
 
   searchImages() {
     return fetch(
@@ -35,11 +37,28 @@ export class ImagesApiService {
     this.#query = newQuery;
   }
 
+  get page() {
+    return this.#page;
+  }
+
+  get totalPages() {
+    return this.#totalPages;
+  }
+
   incrementPage() {
     this.#page += 1;
   }
 
   resetPage() {
     this.#page = 1;
+  }
+
+  resetTotalPage() {
+    this.#totalPages = 1;
+  }
+
+  calculateTotalPages(total) {
+    this.#totalPages = Math.ceil(total / this.#perPage);
+    console.log(this.#totalPages);
   }
 }
