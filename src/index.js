@@ -1,8 +1,5 @@
 // import { Axios } from 'axios';
 
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
-
 import { refs } from './scripts/refs';
 import { ImagesApiService } from './scripts/image-search';
 import { createImagesMarkup } from './scripts/create-markup';
@@ -73,6 +70,11 @@ function loadMoreHandler() {
 
 function imagesRender(images) {
   refs.gallery.insertAdjacentHTML('beforeend', createImagesMarkup(images.hits));
+  new SimpleLightbox('.gallery__img', {
+    captionDelay: 250,
+    captionsData: 'alt',
+    overlayOpacity: 0.1,
+  });
 }
 
 function clearMarkup() {
