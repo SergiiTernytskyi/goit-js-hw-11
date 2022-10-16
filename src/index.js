@@ -83,7 +83,7 @@ function clearMarkup() {
 }
 
 function simpleLightBoxUse() {
-  new SimpleLightbox('.gallery__link', {
+  new SimpleLightbox('.gallery__item', {
     captionDelay: 250,
     captionsData: 'alt',
     overlayOpacity: 0.1,
