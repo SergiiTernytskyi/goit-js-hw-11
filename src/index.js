@@ -1,4 +1,5 @@
-// import { Axios } from 'axios';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 import { refs } from './scripts/refs';
 import { ImagesApiService } from './scripts/image-search';
@@ -10,12 +11,21 @@ import {
   showAllert,
 } from './scripts/messages-show';
 
+const observerOptions = {
+  root: null,
+  rootMargin: '0px',
+  threshold: 0.5,
+};
+
 const imagesApiService = new ImagesApiService();
+const observer = new IntersectionObserver(intersectionHandler, observerOptions);
 
 refs.searchForm.addEventListener('submit', submitHandler);
-refs.loadMore.addEventListener('click', loadMoreHandler);
 
-function submitHandler(event) {
+// For load-more button
+// refs.loadMore.addEventListener('click', loadMoreHandler);
+
+async function submitHandler(event) {
   event.preventDefault();
 
   const {
@@ -29,56 +39,96 @@ function submitHandler(event) {
 
   clearMarkup();
 
+  // For load-more button
+  // isHiddenAdd();
+
   if (searchQuery.value === '') {
     isHiddenAdd();
     return showWarningMessage();
   }
 
-  imagesApiService
-    .searchImages()
-    .then(images => {
-      if (images.hits.length === 0) {
-        return showFailtureMessage();
-      }
+  try {
+    const data = await imagesApiService.searchImages();
 
-      showSuccessMessage(images);
-      imagesRender(images);
+    if (data.hits.length === 0) {
+      return showFailtureMessage();
+    }
 
-      imagesApiService.calculateTotalPages(images.totalHits);
+    showSuccessMessage(data);
+    imagesRender(data);
 
-      if (imagesApiService.page < imagesApiService.totalPages) {
-        return isHiddenRemove();
-      }
-    })
-    .catch(error => {
-      console.log(error);
-    });
+    imagesApiService.calculateTotalPages(data.totalHits);
 
-  searchQuery.value = '';
-}
+    searchQuery.value = '';
 
-function loadMoreHandler() {
-  if (imagesApiService.page > imagesApiService.totalPages) {
-    isHiddenAdd();
-    return showAllert();
+    if (imagesApiService.isLoadMoreImages) {
+      observerSubscribe();
+
+      // For load-more button
+      // return isHiddenRemove();
+    }
+  } catch (error) {
+    console.log(error);
   }
-
-  imagesApiService.searchImages().then(images => {
-    imagesRender(images);
-  });
 }
 
-function imagesRender(images) {
-  refs.gallery.insertAdjacentHTML('beforeend', createImagesMarkup(images.hits));
-  new SimpleLightbox('.gallery__img', {
+function imagesRender(data) {
+  refs.gallery.insertAdjacentHTML('beforeend', createImagesMarkup(data.hits));
+
+  simpleLightBoxUse();
+}
+
+function clearMarkup() {
+  refs.gallery.innerHTML = '';
+}
+
+function simpleLightBoxUse() {
+  new SimpleLightbox('.gallery__link', {
     captionDelay: 250,
     captionsData: 'alt',
     overlayOpacity: 0.1,
   });
 }
 
-function clearMarkup() {
-  refs.gallery.innerHTML = '';
+async function intersectionHandler(entries) {
+  entries.forEach(async entry => {
+    if (entry.isIntersecting) {
+      imagesApiService.incrementPage();
+      observer.unobserve(entry.target);
+
+      try {
+        const data = await imagesApiService.searchImages();
+        imagesRender(data);
+
+        if (imagesApiService.isLoadMoreImages) {
+          observerSubscribe();
+        }
+        if (!imagesApiService.isLoadMoreImages) {
+          showAllert();
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    }
+  });
+}
+
+function observerSubscribe() {
+  const target = document.querySelector('.gallery__item:last-child');
+  observer.observe(target);
+}
+
+// For load-more button
+async function loadMoreHandler() {
+  imagesApiService.incrementPage();
+  if (!imagesApiService.isLoadMoreImages) {
+    isHiddenAdd();
+    return showAllert();
+  }
+
+  const data = await imagesApiService.searchImages();
+  imagesRender(data);
+  smoothMove();
 }
 
 function isHiddenAdd() {
@@ -87,4 +137,15 @@ function isHiddenAdd() {
 
 function isHiddenRemove() {
   refs.loadMore.classList.remove('is-hidden');
+}
+
+function smoothMove() {
+  const { height: photoHeight } =
+    refs.gallery.firstElementChild.getBoundingClientRect();
+  console.log(photoHeight);
+
+  window.scrollBy({
+    top: photoHeight * 2,
+    behavior: 'smooth',
+  });
 }

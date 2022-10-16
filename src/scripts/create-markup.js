@@ -1,6 +1,3 @@
-import SimpleLightbox from 'simplelightbox';
-import 'simplelightbox/dist/simple-lightbox.min.css';
-
 export function createImagesMarkup(imagesArr) {
   const imagesMarkup = imagesArr
     .map(
@@ -13,7 +10,7 @@ export function createImagesMarkup(imagesArr) {
         comments,
         downloads,
       }) => {
-        return `<div class="gallery__item"><a class="gallery__img" href="${largeImageURL}">
+        return `<div class="gallery__item"><a class="gallery__link" href="${largeImageURL}">
         <img class="gallery-img" src="${webformatURL}" alt="${tags}" loading="lazy"/></a>
         <div class="info"><p class="info-item"><b>Likes:</b> ${likes}</p>
         <p class="info-item"><b>Views:</b>${views}</p>

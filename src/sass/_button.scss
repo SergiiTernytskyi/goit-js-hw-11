@@ -19,6 +19,8 @@
   border-radius: 50px;
   background-color: #191c26;
 
+  @include transition-function(border-color, color);
+
   &:hover,
   &:focus {
     border-color: #ff6c00;

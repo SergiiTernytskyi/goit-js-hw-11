@@ -16,8 +16,10 @@
   color: #ffffff;
   border: none;
   border-bottom: 2px solid #ffffff;
-  font-size: 14px;
+  font-size: 16px;
   text-align: center;
+
+  @include transition-function(border-color);
 
   &:hover,
   &:focus {
@@ -27,5 +29,6 @@
 
   &::placeholder {
     color: #9da4bd;
+    font-size: 14px;
   }
 }

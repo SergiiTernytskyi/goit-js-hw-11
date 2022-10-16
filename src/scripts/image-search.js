@@ -1,32 +1,28 @@
-const BASE_URL = 'https://pixabay.com/api/';
+import axios from 'axios';
+
 const KEY = '30592640-c7793cd5d6c6bb2f70fd4091c';
+axios.defaults.baseURL = 'https://pixabay.com/api/';
 
 export class ImagesApiService {
   #query = '';
   #page = 1;
-  #perPage = 30;
+  #perPage = 20;
   #totalPages = 0;
+  #axiosParams = {
+    params: {
+      safesearch: true,
+      rientation: 'horizontal',
+      image_type: 'photo',
+    },
+  };
 
-  constructor() {}
+  async searchImages() {
+    const axiosUrl = `?key=${KEY}&q=${this.#query}&page=${
+      this.#page
+    }&per_page=${this.#perPage}`;
 
-  searchImages() {
-    return fetch(
-      `${BASE_URL}?key=${KEY}&q=${
-        this.#query
-      }&image_type=photo&orientation=horizontal&page=${this.#page}&per_page=${
-        this.#perPage
-      }&safesearch=true`
-    )
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(response.status);
-        }
-        return response.json();
-      })
-      .then(data => {
-        this.incrementPage();
-        return data;
-      });
+    const { data } = await axios.get(axiosUrl, this.#axiosParams);
+    return data;
   }
 
   get query() {
@@ -45,6 +41,10 @@ export class ImagesApiService {
     return this.#totalPages;
   }
 
+  get isLoadMoreImages() {
+    return this.#page < this.#totalPages;
+  }
+
   incrementPage() {
     this.#page += 1;
   }
@@ -59,6 +59,5 @@ export class ImagesApiService {
 
   calculateTotalPages(total) {
     this.#totalPages = Math.ceil(total / this.#perPage);
-    console.log(this.#totalPages);
   }
 }
