@@ -8,9 +8,9 @@ const notifyOptions = {
   timeout: 5000,
 };
 
-export function showFailtureMessage() {
+export function showFailtureMessage(query) {
   Notify.failure(
-    'Sorry, there are no images matching your search query. Please try again.',
+    `Sorry, there are no images matching your search query ${query}. Please try again.`,
     notifyOptions
   );
 }

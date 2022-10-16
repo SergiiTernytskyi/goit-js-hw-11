@@ -51,7 +51,7 @@ async function submitHandler(event) {
     const data = await imagesApiService.searchImages();
 
     if (data.hits.length === 0) {
-      return showFailtureMessage();
+      return showFailtureMessage(searchQuery.value);
     }
 
     showSuccessMessage(data);
