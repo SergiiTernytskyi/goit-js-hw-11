@@ -13,12 +13,18 @@ import {
 
 const observerOptions = {
   root: null,
-  rootMargin: '0px',
-  threshold: 0.5,
+  rootMargin: '100px',
+  threshold: 1,
 };
 
+const simplelightbox = new SimpleLightbox('.gallery__item', {
+  captionDelay: 250,
+  captionsData: 'alt',
+  overlayOpacity: 0.1,
+});
+
 const imagesApiService = new ImagesApiService();
-const observer = new IntersectionObserver(intersectionHandler, observerOptions);
+const io = new IntersectionObserver(intersectionHandler, observerOptions);
 
 refs.searchForm.addEventListener('submit', submitHandler);
 
@@ -56,6 +62,7 @@ async function submitHandler(event) {
 
     showSuccessMessage(data);
     imagesRender(data);
+    simplelightbox.refresh();
 
     imagesApiService.calculateTotalPages(data.totalHits);
 
@@ -74,40 +81,36 @@ async function submitHandler(event) {
 
 function imagesRender(data) {
   refs.gallery.insertAdjacentHTML('beforeend', createImagesMarkup(data.hits));
-
-  simpleLightBoxUse();
 }
 
 function clearMarkup() {
   refs.gallery.innerHTML = '';
 }
 
-function simpleLightBoxUse() {
-  new SimpleLightbox('.gallery__item', {
-    captionDelay: 250,
-    captionsData: 'alt',
-    overlayOpacity: 0.1,
-  });
-}
-
-async function intersectionHandler(entries) {
+async function intersectionHandler(entries, observer) {
   entries.forEach(async entry => {
     if (entry.isIntersecting) {
-      imagesApiService.incrementPage();
       observer.unobserve(entry.target);
+
+      imagesApiService.incrementPage();
 
       try {
         const data = await imagesApiService.searchImages();
-        imagesRender(data);
 
         if (imagesApiService.isLoadMoreImages) {
+          imagesRender(data);
           observerSubscribe();
+
+          simplelightbox.refresh();
         }
+
         if (!imagesApiService.isLoadMoreImages) {
-          showAllert();
+          return showAllert();
         }
       } catch (error) {
         console.log(error);
+        imagesApiService.resetPage();
+        clearMarkup();
       }
     }
   });
@@ -115,7 +118,7 @@ async function intersectionHandler(entries) {
 
 function observerSubscribe() {
   const target = document.querySelector('.gallery__item:last-child');
-  observer.observe(target);
+  io.observe(target);
 }
 
 // For load-more button
